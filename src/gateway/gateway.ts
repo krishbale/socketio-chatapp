@@ -17,6 +17,9 @@ export class MyGateway implements OnModuleInit{
 
     onModuleInit() {
         this.server.on('connection', (socket) => {
+            socket.join(socket.id);
+            
+           
             
             console.log( `New user ${socket.id} connected`);
         },); 
@@ -28,11 +31,23 @@ export class MyGateway implements OnModuleInit{
     @ConnectedSocket() client: Socket){
        
         this.server.emit('text-room', {
-            ...message,
+            message,
             time:new Date().toString(),
         });
+    
       
       
+    }   
+    @SubscribeMessage('private-chat')
+    @UsePipes( new ValidationPipe())
+    handlePrivateMessage(@MessageBody() message:ChatMessage,
+    @ConnectedSocket() client: Socket){
+        
+            this.server.to(message.to).emit('private-room', {
+                from:message.nickname,
+                message,
+                time:new Date().toString(),
+                });
     }
 
 }
